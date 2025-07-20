@@ -1,0 +1,33 @@
+# Handle line endings consistently (force LF in repo)
+* text=auto eol=lf
+
+# Treat Python source files as text for diff/merge tools
+*.py text diff
+
+# Jupyter notebooks: treat as text to enable diffing in GitHub UI
+*.ipynb text diff
+
+# Treat Markdown files as text
+*.md text
+
+# Handle common config files as text
+*.json text
+*.yml text
+*.yaml text
+*.toml text
+
+# Binary files: prevent diffing
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.pdf binary
+
+# Lock files and environments: treat as text
+requirements.txt text
+pdm.lock text
+Pipfile.lock text
