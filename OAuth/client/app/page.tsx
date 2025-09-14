@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/hooks/use-auth"
 import { WelcomeScreen } from "@/components/welcome-screen"
-import { AuthLoadingScreen } from "@/components/auth-loading-screen"
+import { AuthLoadingScreen } from "@/components/auth/auth-loading-screen"
 
 export default function HomePage() {
   const { user, isLoading, isAuthenticated } = useAuth()

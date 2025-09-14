@@ -12,8 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AuthLoadingScreen } from "@/components/auth-loading-screen"
-import { SocialAuthButtons } from "@/components/social-auth-buttons"
+import { AuthLoadingScreen } from "@/components/auth/auth-loading-screen"
+import { SocialAuthButtons } from "@/components/auth/social-auth-buttons"
 import { useAuth } from "@/hooks/use-auth"
 
 export default function SignupPage() {
