@@ -3,7 +3,8 @@ OAuth and social login functionality.
 Supports Google, Azure AD, and other OAuth providers.
 """
 
-from .oauth_manager import OAuthManager
-from .providers import GoogleProvider, AzureProvider
+from auth.oauth.google_oauth_provider import GoogleOAuthProvider
+from auth.oauth.azure_oauth_provider import AzureOAuthProvider
+from auth.oauth.oauth_manager import OAuthManager
 
-__all__ = ["OAuthManager", "GoogleProvider", "AzureProvider"]
+__all__ = ["OAuthManager", "GoogleOAuthProvider", "AzureOAuthProvider"]

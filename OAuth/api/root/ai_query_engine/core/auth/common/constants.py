@@ -29,14 +29,14 @@ GOOGLE_OAUTH_URLS: Dict[str, str] = {
     "authorize": "https://accounts.google.com/o/oauth2/v2/auth",
     "token": "https://oauth2.googleapis.com/token",
     "userinfo": "https://www.googleapis.com/oauth2/v2/userinfo",
-    "jwks": "https://www.googleapis.com/oauth2/v3/certs"
+    "jwks": "https://www.googleapis.com/oauth2/v3/certs",
 }
 
 AZURE_OAUTH_URLS: Dict[str, str] = {
     "authorize": "https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize",
     "token": "https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token",
     "userinfo": "https://graph.microsoft.com/v1.0/me",
-    "jwks": "https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
+    "jwks": "https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys",
 }
 
 # Security Constants
@@ -90,7 +90,12 @@ PERMISSION_ADMIN: str = "admin"
 ROLE_PERMISSIONS: Dict[str, List[str]] = {
     ROLE_USER: [PERMISSION_READ],
     ROLE_MODERATOR: [PERMISSION_READ, PERMISSION_WRITE],
-    ROLE_ADMIN: [PERMISSION_READ, PERMISSION_WRITE, PERMISSION_DELETE, PERMISSION_ADMIN]
+    ROLE_ADMIN: [
+        PERMISSION_READ,
+        PERMISSION_WRITE,
+        PERMISSION_DELETE,
+        PERMISSION_ADMIN,
+    ],
 }
 
 # Email Templates
@@ -146,13 +151,17 @@ CACHE_KEY_RATE_LIMIT: str = "rate_limit:{key}:{identifier}"
 
 # Cache Expiry Times (in seconds)
 CACHE_EXPIRY_USER_ROLES: int = 3600  # 1 hour
-CACHE_EXPIRY_OTP_SECRET: int = 300   # 5 minutes
+CACHE_EXPIRY_OTP_SECRET: int = 300  # 5 minutes
 CACHE_EXPIRY_RATE_LIMIT: int = 3600  # 1 hour
 
 # Regex Patterns
-REGEX_EMAIL: str = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-REGEX_PASSWORD_STRENGTH: str = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]).{12,}$'
-REGEX_UUID: str = r'^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+REGEX_EMAIL: str = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+REGEX_PASSWORD_STRENGTH: str = (
+    r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]).{12,}$"
+)
+REGEX_UUID: str = (
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+)
 
 # Error Messages
 ERROR_INVALID_CREDENTIALS: str = "Invalid email or password"

@@ -7,6 +7,7 @@ from enum import Enum
 
 class ResourceType(Enum):
     """Enumeration of resource types for permission checking."""
+
     USER = "user"
     POST = "post"
     COMMENT = "comment"

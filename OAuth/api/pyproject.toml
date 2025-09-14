@@ -28,6 +28,8 @@ dependencies = [
     "passlib>=1.7.4",
     "jwt>=1.4.0",
     "cryptography>=45.0.7",
+    "pyotp>=2.9.0",
+    "qrcode>=8.2",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"

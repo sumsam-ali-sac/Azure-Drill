@@ -1,5 +1,5 @@
-"""Validation utilities module."""
+"""Validation InputValidator module."""
 
-from auth.validation.validation_utils import ValidationUtils
+from root.ai_query_engine.core.auth.validation.input_validator import InputValidator
 
-__all__ = ['ValidationUtils']
+__all__ = ["InputValidator"]
