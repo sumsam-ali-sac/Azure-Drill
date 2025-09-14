@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -11,8 +12,4 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
-    roles = Column(String, default="user")  # Comma-separated roles
-
-    # Relationships can be defined here if needed
-    # For example, if you have a relationship with another model
-    # items = relationship("Item", back_populates="owner")
+    roles = Column(String, default="user")

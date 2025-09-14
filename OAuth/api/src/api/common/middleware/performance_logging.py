@@ -2,9 +2,10 @@ import time
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 from src.api.common.logging import get_logger
-from src.api.config import settings
+from src.api.config import get_settings
 
-logger = get_logger(__name__)
+settings = get_settings()
+_logger = get_logger(__name__)
 
 
 class PerformanceLoggingMiddleware(BaseHTTPMiddleware):
@@ -12,7 +13,9 @@ class PerformanceLoggingMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app):
         super().__init__(app)
-        self.slow_request_threshold = settings.performance_monitoring.SLOW_REQUEST_THRESHOLD
+        self.slow_request_threshold = (
+            settings.performance_monitoring.SLOW_REQUEST_THRESHOLD
+        )
 
     async def dispatch(self, request: Request, call_next):
         """Log performance metrics"""
@@ -20,7 +23,7 @@ class PerformanceLoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         duration = time.time() - start_time
         if duration > self.slow_request_threshold:
-            logger.warning(
+            _logger.warning(
                 f"Slow request detected: {request.method} {request.url.path}",
                 extra={
                     "duration": duration,
@@ -28,7 +31,11 @@ class PerformanceLoggingMiddleware(BaseHTTPMiddleware):
                     "method": request.method,
                     "path": request.url.path,
                     "status_code": response.status_code,
-                    "request_id": request.state.request_id if hasattr(request.state, 'request_id') else "N/A"
-                }
+                    "request_id": (
+                        request.state.request_id
+                        if hasattr(request.state, "request_id")
+                        else "N/A"
+                    ),
+                },
             )
         return response

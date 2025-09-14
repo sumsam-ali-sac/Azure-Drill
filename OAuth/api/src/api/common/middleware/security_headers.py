@@ -1,42 +1,42 @@
+from typing import Callable
 from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
-from src.api.config import settings
+from starlette.types import ASGIApp, Scope, Receive, Send
+from src.api.config import get_settings
+
+settings = get_settings()
 
 
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+class SecurityHeadersMiddleware:
     """
     Middleware that adds a variety of security headers to every HTTP response.
-    Headers include protections against clickjacking, MIME sniffing, cross-site scripting,
-    referrer leakage, DNS prefetching, and enforce HTTPS via HSTS in production.
-    Also provides strict cross-origin isolation and feature controls.
+    Provides protections against clickjacking, MIME sniffing, XSS,
+    referrer leakage, DNS prefetching, and enforces HTTPS in production.
+    Also applies strict cross-origin isolation and a restrictive CSP.
     """
 
-    def __init__(self, app):
-        super().__init__(app)
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
         # Core security headers applied universally
         self.headers = {
-            "X-Content-Type-Options": "nosniff",  # Prevent MIME-type sniffing
-            "X-Frame-Options": "DENY",            # Disallow framing to prevent clickjacking
-            "Referrer-Policy": "strict-origin-when-cross-origin",  # Limit referer info
-            # Disable Flash cross-domain policies
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
             "X-Permitted-Cross-Domain-Policies": "none",
-            "X-DNS-Prefetch-Control": "off",      # Disable DNS prefetch for privacy
-            # Opt out of powerful features
+            "X-DNS-Prefetch-Control": "off",
             "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)",
-            "Cross-Origin-Opener-Policy": "same-origin",  # Cross-origin isolation
-            "Cross-Origin-Embedder-Policy": "require-corp",  # Cross-origin isolation
-            "Cross-Origin-Resource-Policy": "same-origin",  # Cross-origin isolation
+            "Cross-Origin-Opener-Policy": "same-origin",
+            "Cross-Origin-Embedder-Policy": "require-corp",
+            "Cross-Origin-Resource-Policy": "same-origin",
         }
-        # Add HSTS only in production to enforce HTTPS
-        if settings.is_production:  # Use the top-level property
+
+        # Add HSTS in production only
+        if settings.application.ENVIRONMENT == "PRODUCTION":
             self.headers["Strict-Transport-Security"] = (
-                # Tells browsers to only use HTTPS for one year
                 "max-age=31536000; includeSubDomains; preload"
             )
+
         # Build a strict Content-Security-Policy
-        # - default-src 'self': only load resources from own origin
-        # - script-src/style-src without 'unsafe-inline' in prod; use nonces/hashes instead
-        # - report-uri: send violation reports to /csp-report endpoint
         csp = {
             "default-src": ["'self'"],
             "script-src": ["'self'"],
@@ -44,33 +44,33 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "img-src": ["'self'", "data:", "https:"],
             "font-src": ["'self'", "data:"],
             "connect-src": ["'self'"],
-            "frame-ancestors": ["'none'"],  # Prevent embedding entirely
-            # Endpoint to collect CSP violation reports
+            "frame-ancestors": ["'none'"],
             "report-uri": ["/csp-report"],
         }
         csp_value = "; ".join(f"{k} {' '.join(v)}" for k, v in csp.items())
         self.headers["Content-Security-Policy"] = csp_value
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """
-        Intercept each request/response cycle.
-        - If it's a CSP violation report, return 204 immediately.
-        - Otherwise, call downstream handlers, then append all security headers.
-        - Strip default 'server' header leaked by frameworks.
+        ASGI entrypoint: intercept the response, remove 'server' header,
+        and inject all security headers.
         """
-        # Handle CSP violation reports
-        if request.url.path == "/csp-report" and request.method == "POST":
-            # TODO: parse JSON payload and log or forward to monitoring
-            return Response(status_code=204)
 
-        # Process normal request and get response
-        response = await call_next(request)
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = dict(message.get("headers", []))
 
-        # Remove any default server header for obscurity
-        response.headers.pop("server", None)
+                # Remove default server header
+                if b"server" in headers:
+                    del headers[b"server"]
 
-        # Append each security header defined in __init__
-        for hdr, val in self.headers.items():
-            response.headers[hdr] = val
+                # Add/overwrite headers
+                for hdr, val in self.headers.items():
+                    headers[hdr.encode()] = val.encode()
 
-        return response
+                # Rebuild message.headers as a list of tuples
+                message["headers"] = [(k, v) for k, v in headers.items()]
+
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)

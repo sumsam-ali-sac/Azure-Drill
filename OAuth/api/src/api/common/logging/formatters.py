@@ -1,26 +1,24 @@
 import json
 import logging
-from typing import Any, Dict
 
 
 class JSONFormatter(logging.Formatter):
-    """JSON formatter for structured logging"""
+    """Format logs as structured JSON including trace/span IDs."""
 
     def format(self, record: logging.LogRecord) -> str:
-        """Format log record as JSON"""
-        log_entry: Dict[str, Any] = {
+        log_entry = {
             "timestamp": self.formatTime(record),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
             "module": record.module,
             "function": record.funcName,
-            "line": record.lineno
+            "line": record.lineno,
+            "trace_id": getattr(record, "trace_id", "none"),
+            "span_id": getattr(record, "span_id", "none"),
         }
-
-        if hasattr(record, 'extra_fields'):
-            log_entry.update(record.extra_fields)
         if record.exc_info:
             log_entry["exception"] = self.formatException(record.exc_info)
-
+        if hasattr(record, "extra_fields"):
+            log_entry.update(record.extra_fields)
         return json.dumps(log_entry)

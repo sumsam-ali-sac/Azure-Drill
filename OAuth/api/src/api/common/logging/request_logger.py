@@ -1,8 +1,7 @@
 import logging
 import time
 from typing import Optional, Any, Dict
-
-from common.logging.setup import get_logger
+from src.api.common.logging.logging_manager import get_logger
 
 
 class RequestLogger:
@@ -18,15 +17,15 @@ class RequestLogger:
         self.request_id: str = request_id
         self.user_id: Optional[str] = user_id
         self.operation: Optional[str] = operation
-        self.logger: logging.Logger = get_logger("request")
+
+        # Use centralized app logger
+        self.logger: logging.Logger = get_logger("my_app")
         self.start_time: float = time.time()
 
     def __enter__(self) -> "RequestLogger":
-        """Enter context manager"""
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        """Exit context manager and log request completion"""
         duration: float = time.time() - self.start_time
         if exc_type:
             self.error(f"Request failed: {exc_val}", duration=duration)
@@ -45,21 +44,16 @@ class RequestLogger:
         getattr(self.logger, level)(message, extra={"extra_fields": extra_fields})
 
     def debug(self, message: str, **kwargs: Any) -> None:
-        """Log debug message"""
         self._log("debug", message, **kwargs)
 
     def info(self, message: str, **kwargs: Any) -> None:
-        """Log info message"""
         self._log("info", message, **kwargs)
 
     def warning(self, message: str, **kwargs: Any) -> None:
-        """Log warning message"""
         self._log("warning", message, **kwargs)
 
     def error(self, message: str, **kwargs: Any) -> None:
-        """Log error message"""
         self._log("error", message, **kwargs)
 
     def critical(self, message: str, **kwargs: Any) -> None:
-        """Log critical message"""
         self._log("critical", message, **kwargs)
