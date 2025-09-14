@@ -2,7 +2,10 @@ import logging
 import time
 from typing import Optional, Any, Dict
 from opentelemetry import trace
+from src.api.config.settings import get_settings
 from src.api.common.logging.logging_manager import get_logger
+
+settings = get_settings()
 
 
 class RequestLogger:
@@ -18,7 +21,7 @@ class RequestLogger:
         self.request_id: str = request_id
         self.user_id: Optional[str] = user_id
         self.operation: Optional[str] = operation
-        self.logger: logging.Logger = get_logger("my_app")
+        self.logger: logging.Logger = get_logger(settings.application.APP_NAME)
         self.start_time: float = time.time()
         self.tracer = trace.get_tracer(__name__)
         self.span = None

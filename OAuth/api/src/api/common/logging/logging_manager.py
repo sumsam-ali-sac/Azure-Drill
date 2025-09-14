@@ -35,7 +35,7 @@ class LoggingManager:
 
         setup_otel(self._settings)
 
-        root = logging.getLogger("my_app")
+        root = logging.getLogger(self._settings.application.APP_NAME)
         level = getattr(
             logging,
             getattr(self._settings.logging, "LOG_LEVEL", "INFO").upper(),
@@ -59,7 +59,7 @@ class LoggingManager:
         # Get tracer after OTel setup
         from opentelemetry import trace
 
-        self._tracer = trace.get_tracer("my_app")
+        self._tracer = trace.get_tracer(self._settings.application.APP_NAME)
 
     def get_logger(self, name: str) -> logging.Logger:
         if self._logger is None:

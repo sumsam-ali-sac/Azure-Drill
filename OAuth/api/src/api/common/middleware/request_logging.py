@@ -11,7 +11,7 @@ from src.api.common.logging.logging_manager import get_logger
 from opentelemetry import trace
 
 settings = get_settings()
-_logger = get_logger("my_app")
+_logger = get_logger(settings.application.APP_NAME)
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
