@@ -37,6 +37,9 @@ dependencies = [
     "fastapi-cache>=0.1.0",
     "redis>=7.0.0b1",
     "fastapi-cache2>=0.2.2",
+    "opentelemetry-instrumentation-fastapi>=0.57b0",
+    "opentelemetry-instrumentation-logging>=0.57b0",
+    "opentelemetry-instrumentation-system-metrics>=0.57b0",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"

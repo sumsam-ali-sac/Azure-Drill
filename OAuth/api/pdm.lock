@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:f8c030b38e607eb844d029d83ff3b71dcb84323bf85a0c77d9e410a9febcd220"
+content_hash = "sha256:b5b4583088d4513ffe35ec9f3ae475a9bc44df6860983e734dbf049c9905c1c2"
 
 [[metadata.targets]]
 requires_python = "==3.11.*"
@@ -1232,6 +1232,21 @@ files = [
 ]
 
 [[package]]
+name = "opentelemetry-instrumentation-logging"
+version = "0.57b0"
+requires_python = ">=3.9"
+summary = "OpenTelemetry Logging instrumentation"
+groups = ["default"]
+dependencies = [
+    "opentelemetry-api~=1.12",
+    "opentelemetry-instrumentation==0.57b0",
+]
+files = [
+    {file = "opentelemetry_instrumentation_logging-0.57b0-py3-none-any.whl", hash = "sha256:9f57d13bf776f6507f8ccff16a7aa6e6e753672708943925a794f16152504a04"},
+    {file = "opentelemetry_instrumentation_logging-0.57b0.tar.gz", hash = "sha256:44dbeb8aaf643e95d7311b699b8d368b1ecdb8404f1563f19f2b3ce2b4c6a035"},
+]
+
+[[package]]
 name = "opentelemetry-instrumentation-psycopg2"
 version = "0.57b0"
 requires_python = ">=3.9"
@@ -1262,6 +1277,22 @@ dependencies = [
 files = [
     {file = "opentelemetry_instrumentation_requests-0.57b0-py3-none-any.whl", hash = "sha256:66a576ac8080724ddc8a14c39d16bb5f430991bd504fdbea844c7a063f555971"},
     {file = "opentelemetry_instrumentation_requests-0.57b0.tar.gz", hash = "sha256:193bd3fd1f14737721876fb1952dffc7d43795586118df633a91ecd9057446ff"},
+]
+
+[[package]]
+name = "opentelemetry-instrumentation-system-metrics"
+version = "0.57b0"
+requires_python = ">=3.9"
+summary = "OpenTelemetry System Metrics Instrumentation"
+groups = ["default"]
+dependencies = [
+    "opentelemetry-api~=1.11",
+    "opentelemetry-instrumentation==0.57b0",
+    "psutil<8,>=5.9.0",
+]
+files = [
+    {file = "opentelemetry_instrumentation_system_metrics-0.57b0-py3-none-any.whl", hash = "sha256:3b6ecb1807c42af13020d3101e5842d1641e7dedde01f0094edb58f296e36e5c"},
+    {file = "opentelemetry_instrumentation_system_metrics-0.57b0.tar.gz", hash = "sha256:80eba896cf0b00b6d2390f62fce6c4a32818e8c78939110be28bd13e8af13110"},
 ]
 
 [[package]]

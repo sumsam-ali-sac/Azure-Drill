@@ -8,13 +8,14 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from src.api.common.logging.request_logger import RequestLogger
 from src.api.config import get_settings
 from src.api.common.logging.logging_manager import get_logger
+from opentelemetry import trace
 
 settings = get_settings()
 _logger = get_logger("my_app")
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    """Logs all requests and responses safely."""
+    """Logs all requests and responses safely with OTel spans."""
 
     def __init__(self, app, log_level="INFO"):
         super().__init__(app)
@@ -29,7 +30,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             f.lower() for f in settings.request_response_logging.SENSITIVE_JSON_FIELDS
         ]
         self.log_level = log_level
-        _logger.info(f"RequestLoggingMiddleware initialized with log_level={log_level}")
 
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
@@ -46,7 +46,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         request.state.logger = req_logger
 
         start_time = time.time()
-        with req_logger:
+        with req_logger:  # This starts the span
             try:
                 await self._log_request(req_logger, request)
                 response = await call_next(request)
@@ -83,6 +83,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 if body:
                     request_data["body"] = self._process_body(body)
             req_logger.info("Request started", **request_data)
+            # Add attributes to span
+            span = trace.get_current_span()
+            if span:
+                for k, v in request_data.items():
+                    if isinstance(v, (str, int, float, bool)):
+                        span.set_attribute(f"request.{k}", v)
         except Exception as e:
             _logger.error(f"Failed to log request: {e}", exc_info=True)
 
@@ -131,6 +137,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 )
             else:
                 req_logger.info("Request completed successfully", **response_data)
+
+            # Add to span
+            span = trace.get_current_span()
+            if span:
+                span.set_attribute("http.status_code", response_data["status_code"])
+                span.set_attribute("duration_ms", response_data["duration_ms"])
         except Exception as e:
             _logger.error(f"Failed to log response: {e}", exc_info=True)
 

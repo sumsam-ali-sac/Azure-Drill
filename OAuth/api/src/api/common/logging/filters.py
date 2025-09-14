@@ -9,7 +9,7 @@ except ImportError:
 
 
 class TraceContextFilter(logging.Filter):
-    """Attach trace_id and span_id from OpenTelemetry to log records."""
+    """Attach trace_id and span_id from OpenTelemetry to log records (fallback if instrumentation-logging not active)."""
 
     def filter(self, record: logging.LogRecord) -> bool:
         if OTEL_AVAILABLE:

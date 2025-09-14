@@ -3,6 +3,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from contextlib import asynccontextmanager
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from src.api.config import get_settings
 from src.api.common.logging import get_logger, get_tracer
 from src.api.common.middleware.middleware_factory import (
@@ -10,11 +11,14 @@ from src.api.common.middleware.middleware_factory import (
 )
 from src.api.common.middleware.performance_logging import PerformanceLoggingMiddleware
 from src.api.common.middleware.security_headers import SecurityHeadersMiddleware
-from src.api.routers import items, health
+from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
+from opentelemetry import trace
+
+from src.api.routers import health
 
 settings = get_settings()
 logger = get_logger(__name__)
-tracer = get_tracer(settings.application.APP_NAME)
+tracer = get_tracer()
 
 
 # ----------------- Lifespan ----------------- #
@@ -35,6 +39,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Instrument FastAPI for auto-tracing
+FastAPIInstrumentor.instrument_app(app)
+app.add_middleware(OpenTelemetryMiddleware, tracer_provider=trace.get_tracer_provider())
+
 # ----------------- Middleware ----------------- #
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(create_request_logging_middleware(log_level="INFO"))
@@ -54,7 +62,6 @@ if settings.application.ENVIRONMENT == "production":
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # ----------------- Routers ----------------- #
-app.include_router(items.router)
 app.include_router(health.router)
 
 

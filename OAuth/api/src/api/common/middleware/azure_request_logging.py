@@ -3,6 +3,7 @@ from src.api.common.middleware.request_logging import RequestLoggingMiddleware
 from src.api.common.logging.request_logger import RequestLogger
 from src.api.config import get_settings
 from src.api.common.logging.logging_manager import get_logger
+from opentelemetry import trace
 
 settings = get_settings()
 _logger = get_logger("my_app")
@@ -32,3 +33,6 @@ class AzureRequestLoggingMiddleware(RequestLoggingMiddleware):
         azure_context = {k: v for k, v in azure_context.items() if v}
         if azure_context:
             req_logger.info("Azure context", **azure_context)
+            span = trace.get_current_span()
+            for k, v in azure_context.items():
+                span.set_attribute(f"azure.{k}", v)

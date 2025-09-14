@@ -2,7 +2,7 @@ import logging
 from typing import Any
 from src.api.config import get_settings
 from src.api.common.logging.handlers import create_console_handler, create_file_handler
-from src.api.common.logging.tracers import NoOpTracer, ConsoleTracer, AzureTracer
+from src.api.common.logging.otel_setup import setup_otel
 
 settings = get_settings()
 
@@ -22,28 +22,8 @@ class LoggingManager:
         self._logger: logging.Logger | None = None
         self._tracer: Any = None
 
-    def _setup_tracing(self) -> Any:
-        if self._tracer is not None:
-            return self._tracer
-
-        env = getattr(self._settings.application, "ENVIRONMENT", "development")
-        service_name = getattr(
-            self._settings.application, "APP_NAME", "default-python-service"
-        )
-
-        if env == "development":
-            self._tracer = ConsoleTracer(service_name)
-        elif env == "production" and getattr(
-            self._settings.azure.app_insights, "AZURE_APPINSIGHTS_CONNECTION_STRING", ""
-        ):
-            self._tracer = AzureTracer(service_name, self._settings)
-        else:
-            self._tracer = NoOpTracer(service_name)
-
-        return self._tracer
-
     def _suppress_noisy_loggers(self) -> None:
-        for name in ("urllib3", "azure", "httpx"):
+        for name in ("urllib3", "azure", "httpx", "opentelemetry"):
             logging.getLogger(name).setLevel(logging.WARNING)
         # Keep Uvicorn colored logs
         logging.getLogger("uvicorn.access").propagate = True
@@ -53,10 +33,9 @@ class LoggingManager:
         if self._logger is not None:
             return
 
-        # Init tracer first
-        self._setup_tracing()
+        setup_otel(self._settings)
 
-        root = logging.getLogger("my_app")  # use app-specific logger
+        root = logging.getLogger("my_app")
         level = getattr(
             logging,
             getattr(self._settings.logging, "LOG_LEVEL", "INFO").upper(),
@@ -68,7 +47,7 @@ class LoggingManager:
         for h in root.handlers[:]:
             root.removeHandler(h)
 
-        # Add handlers
+        # Add handlers (OTel LoggingHandler added in otel_setup)
         root.addHandler(create_console_handler())
         fh = create_file_handler()
         if fh:
@@ -77,6 +56,11 @@ class LoggingManager:
         self._logger = root
         self._suppress_noisy_loggers()
 
+        # Get tracer after OTel setup
+        from opentelemetry import trace
+
+        self._tracer = trace.get_tracer("my_app")
+
     def get_logger(self, name: str) -> logging.Logger:
         if self._logger is None:
             self.setup()
@@ -84,7 +68,7 @@ class LoggingManager:
 
     def get_tracer(self) -> Any:
         if self._tracer is None:
-            self._setup_tracing()
+            self.setup()
         return self._tracer
 
 
