@@ -22,7 +22,7 @@ dependencies = [
     "starlette>=0.46.0",
     "xxhash>=3.4.1",
     "uvicorn>=0.35.0",
-    "fastapi>=0.116.1",
+    "FastAPI>=0.116.1",
     "sqlmodel>=0.0.24",
     "aiosqlite>=0.21.0",
     "passlib>=1.7.4",
@@ -30,6 +30,8 @@ dependencies = [
     "cryptography>=45.0.7",
     "pyotp>=2.9.0",
     "qrcode>=8.2",
+    "opentelemetry-sdk>=1.36.0",
+    "azure-monitor-opentelemetry>=1.8.0",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"
