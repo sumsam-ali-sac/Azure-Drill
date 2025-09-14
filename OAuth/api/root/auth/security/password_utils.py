@@ -310,7 +310,7 @@ class PasswordManager:
         Returns:
             Reset token
         """
-        from auth.token_utils import TokenManager
+        from auth.security import TokenManager
 
         token_manager = TokenManager()
         return token_manager.create_token(
@@ -333,7 +333,7 @@ class PasswordManager:
             Email if token is valid, None otherwise
         """
         try:
-            from auth.token_utils import TokenManager
+            from auth.security import TokenManager
 
             token_manager = TokenManager()
             payload = token_manager.verify_token(token)

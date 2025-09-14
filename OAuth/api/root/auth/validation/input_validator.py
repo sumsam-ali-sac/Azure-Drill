@@ -370,7 +370,7 @@ class InputValidator:
                 else:
                     # Default to frontend URL host
                     from urllib.parse import urlparse as parse_config
-                    from root.ai_query_engine.core.auth.config import config
+                    from auth.common.config import config
 
                     frontend_host = parse_config(config.FRONTEND_URL).netloc
                     return parsed.netloc == frontend_host
