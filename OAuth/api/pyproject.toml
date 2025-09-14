@@ -26,6 +26,8 @@ dependencies = [
     "sqlmodel>=0.0.24",
     "aiosqlite>=0.21.0",
     "passlib>=1.7.4",
+    "jwt>=1.4.0",
+    "cryptography>=45.0.7",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"
