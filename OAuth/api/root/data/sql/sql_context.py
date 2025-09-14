@@ -1,9 +1,7 @@
 import logging
-import time
-from typing import AsyncGenerator, Generator
+from typing import Generator
 
 import xxhash
-from databricks.sql import ServerOperationError
 
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -203,65 +201,10 @@ def db_dependency(
     with session() as session:
         try:
             yield session
-            if database_type == DatabaseType.DATABRICKS:
-                # Use the custom commit function for Databricks
-                databricks_commit_with_retry(session)
-            else:
-                session.commit()
-        except (InternalError, ServerOperationError) as e:
+            session.commit()
+        except InternalError as e:
             _logger.exception(f"Database session rollback due to exception: {e}")
             session.rollback()
             raise
         finally:
             session.close()
-
-
-async def async_db_dependency(
-    database_type: DatabaseType, database_url: str, database_name: str = None, **kwargs
-) -> AsyncGenerator[AsyncSession, None]:
-    """
-    An async dependency generator that yields an AsyncSession.
-    (For example, to be used with FastAPI's dependency injection.)
-    """
-    async_session_local = get_async_session_maker(
-        database_type=database_type,
-        database_url=database_url,
-        database_name=database_name,
-        **kwargs,
-    )
-
-    async with async_session_local() as session:
-        try:
-            yield session
-            await session.commit()
-        except InternalError as e:
-            _logger.exception(f"Async database session rollback due to exception: {e}")
-            await session.rollback()
-            raise
-        finally:
-            await session.close()
-
-
-def databricks_commit_with_retry(
-    session: Session, max_retries: int = 4, backoff_base: float = 0.3
-):
-    """
-    Commit the session with a retry mechanism.
-    """
-    for attempt in range(1, max_retries + 1):
-        try:
-            session.commit()
-            return
-        except ServerOperationError as e:
-            _logger.warning(f"Commit Attempt {attempt} failed: {e}")
-            text = str(e)
-            if "DELTA_CONCURRENT_APPEND" in text:
-                session.rollback()
-                wait = backoff_base * attempt
-                time.sleep(wait)
-            else:
-                raise  # Re-raise the exception if it's not a concurrent append
-
-    raise RuntimeError(
-        f"Failed to commit session after {max_retries} attempts due to ServerOperationError: {text}"
-    )
