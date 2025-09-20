@@ -1,113 +1,101 @@
 import logging
-from opentelemetry import trace, metrics
+from opentelemetry import trace
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import (
-    PeriodicExportingMetricReader,
-    ConsoleMetricExporter,
-)
 from opentelemetry.sdk._logs import LoggerProvider
 from opentelemetry._logs import set_logger_provider
-from opentelemetry.sdk._logs.export import ConsoleLogExporter, BatchLogRecordProcessor
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor, ConsoleLogExporter
+from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
-from opentelemetry.sdk.trace import SpanProcessor
-
-try:
-    from azure.monitor.opentelemetry import configure_azure_monitor
-
-    AZURE_AVAILABLE = True
-except ImportError:
-    AZURE_AVAILABLE = False
+from src.api.config.settings import Settings
 
 
-# CHANGED: Enhanced filtering for both http.response.start and http.response.body
-class FilterASGISpans(SpanProcessor):
-    """Custom processor to filter out redundant ASGI response spans"""
+class OpenTelemetryConfig:
+    """Configuration class for OpenTelemetry setup, including traces and logs."""
 
-    def __init__(self, next_processors):
-        self.next_processors = (
-            next_processors if isinstance(next_processors, list) else [next_processors]
+    def __init__(self, settings: Settings):
+        self.env = settings.application.ENVIRONMENT or "development"
+        self.service_name = "uvicorn." + __name__
+        self.azure_cs = getattr(
+            settings.azure.app_insights, "AZURE_APPINSIGHTS_CONNECTION_STRING", ""
         )
-        self.logger = logging.getLogger(__name__)
+        self.jaeger_ep = getattr(settings.jaeger_otel, "JAEGER_ENDPOINT", "")
+        self.resource = Resource.create({SERVICE_NAME: self.service_name})
+        self.logger = logging.getLogger("uvicorn." + __name__)
+        self.exporters = {
+            "traces": "",
+            "logs": "Console",
+        }
 
-    def on_start(self, span, parent_context=None):
-        for processor in self.next_processors:
-            processor.on_start(span, parent_context)
+    def _configure_azure(self):
+        """Configure Azure Monitor for production, including traces and logs."""
+        configure_azure_monitor(
+            connection_string=self.azure_cs,
+            resource=self.resource,
+        )
+        self.exporters.update(
+            {
+                "traces": "Azure",
+                "logs": "Console, Azure",
+            }
+        )
+        self.logger.info("Configured Azure Monitor for traces and logs")
 
-    def on_end(self, span):
-        # Filter out redundant ASGI spans
-        if span.name.endswith("http send") and span.attributes.get(
-            "asgi.event.type"
-        ) in ["http.response.start", "http.response.body"]:
-            self.logger.debug(f"Skipping redundant span: {span.name}")
-            return  # Do not export
-        for processor in self.next_processors:
-            processor.on_end(span)
+    def _configure_traces(self):
+        """Configure tracing with Jaeger or console exporter."""
+        trace_provider = TracerProvider(resource=self.resource)
+        exporter = (
+            JaegerExporter(collector_endpoint=self.jaeger_ep)
+            if self.jaeger_ep
+            else ConsoleSpanExporter()
+        )
+        trace_provider.add_span_processor(BatchSpanProcessor(exporter))
+        trace.set_tracer_provider(trace_provider)
+        self.exporters["traces"] = "Jaeger" if self.jaeger_ep else "Console"
+        self.logger.info(f"Trace exporter: {self.exporters['traces']}")
 
-    def shutdown(self):
-        for processor in self.next_processors:
-            processor.shutdown()
+    def _configure_logs(self):
+        """Configure logs to console (and Azure in production)."""
+        log_provider = LoggerProvider(resource=self.resource)
+        log_provider.add_log_record_processor(
+            BatchLogRecordProcessor(ConsoleLogExporter())
+        )
+        set_logger_provider(log_provider)
+        self.logger.info(f"Logs exporters: {self.exporters['logs']}")
 
-    def force_flush(self, timeout_millis=30000):
-        for processor in self.next_processors:
-            processor.force_flush(timeout_millis)
+    def _configure_metrics(self):
+        """Configure metrics for the application."""
+        self.exporters["metrics"] = "Console"
+        self.logger.info(f"Metrics exporter: {self.exporters['metrics']}")
+
+    def log_exporters(self):
+        """Log the configured exporters for traces, logs, and metrics."""
+        self.logger.info(
+            f"OpenTelemetry exporters - Traces: {self.exporters['traces']}, "
+            f"Logs: {self.exporters['logs']}, Metrics: {self.exporters.get('metrics','-')}"
+        )
 
 
-def setup_otel(settings):
-    """Centralized OTel setup, idempotent."""
-    env = getattr(settings.application, "ENVIRONMENT", "development")
-    service_name = getattr(settings.application, "APP_NAME", "default-python-service")
-    resource = Resource.create({SERVICE_NAME: service_name})
-
-    # Check if TracerProvider is a valid SDK provider
-    current_tracer_provider = trace.get_tracer_provider()
-    from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
-
-    if isinstance(current_tracer_provider, SDKTracerProvider):
-        return
-
+def setup_otel(settings: Settings):
+    """Set up OpenTelemetry with Azure (prod) or Jaeger/console for traces and console for logs."""
+    config = OpenTelemetryConfig(settings)
     try:
-        if (
-            env == "production"
-            and AZURE_AVAILABLE
-            and hasattr(settings, "azure")
-            and hasattr(settings.azure, "app_insights")
-            and getattr(
-                settings.azure.app_insights, "AZURE_APPINSIGHTS_CONNECTION_STRING", ""
-            )
-        ):
-            configure_azure_monitor(
-                connection_string=settings.azure.app_insights.AZURE_APPINSIGHTS_CONNECTION_STRING,
-                resource=resource,
-            )
+        if config.env == "production" and config.azure_cs:
+            config._configure_azure()
+            config._configure_logs()
         else:
-            # Configure TracerProvider
-            trace_provider = TracerProvider(resource=resource)
-            console_processor = BatchSpanProcessor(ConsoleSpanExporter())
-            filtered_processor = FilterASGISpans(console_processor)
-            trace_provider.add_span_processor(filtered_processor)
-            trace.set_tracer_provider(trace_provider)
+            config._configure_traces()
+            config._configure_logs()
+            config._configure_metrics()
 
-            # Configure MeterProvider
-            metric_reader = PeriodicExportingMetricReader(ConsoleMetricExporter())
-            meter_provider = MeterProvider(
-                resource=resource, metric_readers=[metric_reader]
-            )
-            metrics.set_meter_provider(meter_provider)
+        # Instrument logging
+        LoggingInstrumentor().instrument(set_logging_format=True)
+        config.log_exporters()
+        config.logger.info("OpenTelemetry setup completed successfully")
 
-            # Configure LoggerProvider
-            log_provider = LoggerProvider(resource=resource)
-            log_provider.add_log_record_processor(
-                BatchLogRecordProcessor(ConsoleLogExporter())
-            )
-            set_logger_provider(log_provider)
+        return None  # TODO: return a MeterProvider later if needed
     except Exception as e:
-        logging.getLogger(__name__).error(
-            f"Failed to configure OpenTelemetry: {e}", exc_info=True
-        )
+        config.logger.error(f"OpenTelemetry setup failed: {e}", exc_info=True)
         raise
-
-    # Instrument logging
-    LoggingInstrumentor().instrument()

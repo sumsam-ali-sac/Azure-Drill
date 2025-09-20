@@ -2,7 +2,7 @@ from fastapi import Request
 from src.api.common.middleware.request_logging import RequestLoggingMiddleware
 from src.api.common.logging.request_logger import RequestLogger
 from src.api.config import get_settings
-from src.api.common.logging.logging_manager import get_logger
+from src.api.common.logging.logger_manager import get_logger
 from opentelemetry import trace
 
 settings = get_settings()

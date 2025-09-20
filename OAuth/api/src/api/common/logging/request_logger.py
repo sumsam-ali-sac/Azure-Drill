@@ -1,15 +1,16 @@
 import logging
 import time
+import json
 from typing import Optional, Any, Dict
 from opentelemetry import trace
 from src.api.config.settings import get_settings
-from src.api.common.logging.logging_manager import get_logger
+from src.api.common.logging.logger_manager import get_logger
 
 settings = get_settings()
 
 
 class RequestLogger:
-    """Context manager for request-specific logging with structured data"""
+    """Context manager for request-specific logging with structured JSON output"""
 
     def __init__(
         self,
@@ -17,7 +18,6 @@ class RequestLogger:
         user_id: Optional[str] = None,
         operation: Optional[str] = None,
     ):
-        """Initialize request logger with contextual information"""
         self.request_id: str = request_id
         self.user_id: Optional[str] = user_id
         self.operation: Optional[str] = operation
@@ -27,7 +27,6 @@ class RequestLogger:
         self.span = None
 
     def __enter__(self) -> "RequestLogger":
-        # Reuse existing current span instead of creating a new one
         self.span = trace.get_current_span()
         if self.span and self.span.is_recording():
             self.span.set_attribute("request_id", self.request_id)
@@ -49,18 +48,19 @@ class RequestLogger:
         else:
             if self.span and self.span.is_recording():
                 self.span.set_status(trace.StatusCode.OK)
-            self.info("Request completed", duration=duration)
 
     def _log(self, level: str, message: str, **kwargs: Any) -> None:
-        """Internal logging method with common extra fields"""
-        extra_fields: Dict[str, Any] = {
+        """Log as structured JSON with all request/response fields"""
+        log_entry: Dict[str, Any] = {
+            "message": message,
+            "level": level.upper(),
             "request_id": self.request_id,
             "user_id": self.user_id,
             "operation": self.operation,
-            **kwargs,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime()),
+            **{k: v for k, v in kwargs.items() if v is not None},
         }
-        extra_fields = {k: v for k, v in extra_fields.items() if v is not None}
-        getattr(self.logger, level)(message, extra={"extra_fields": extra_fields})
+        self.logger.log(getattr(logging, level.upper()), json.dumps(log_entry))
 
     def debug(self, message: str, **kwargs: Any) -> None:
         self._log("debug", message, **kwargs)

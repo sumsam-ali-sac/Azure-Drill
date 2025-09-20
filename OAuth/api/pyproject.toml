@@ -40,6 +40,8 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi>=0.57b0",
     "opentelemetry-instrumentation-logging>=0.57b0",
     "opentelemetry-instrumentation-system-metrics>=0.57b0",
+    "opentelemetry-exporter-jaeger>=1.21.0",
+    "deprecated>=1.2.18",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"

@@ -1,5 +1,5 @@
 from src.api.config import get_settings
-from src.api.common.logging.logging_manager import get_logger
+from src.api.common.logging.logger_manager import get_logger
 from src.api.common.middleware.request_logging import RequestLoggingMiddleware
 from src.api.common.middleware.azure_request_logging import (
     AzureRequestLoggingMiddleware,

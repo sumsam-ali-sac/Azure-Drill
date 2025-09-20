@@ -1,4 +1,5 @@
 from functools import lru_cache
+from src.api.config.jaeger_otel import JaegerOtelSettings
 from src.api.config.base import BaseConfig
 from src.api.config.application import ApplicationSettings
 from src.api.config.security import SecuritySettings
@@ -19,8 +20,8 @@ from pydantic import Field
 
 class Settings(BaseConfig):
     """Main settings class that aggregates all application configurations."""
-    application: ApplicationSettings = Field(
-        default_factory=ApplicationSettings)
+
+    application: ApplicationSettings = Field(default_factory=ApplicationSettings)
     security: SecuritySettings = Field(default_factory=SecuritySettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     redis: RedisSettings = Field(default_factory=RedisSettings)
@@ -30,13 +31,17 @@ class Settings(BaseConfig):
     cors: CORSSettings = Field(default_factory=CORSSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     request_response_logging: RequestResponseLoggingSettings = Field(
-        default_factory=RequestResponseLoggingSettings)
+        default_factory=RequestResponseLoggingSettings
+    )
     performance_monitoring: PerformanceMonitoringSettings = Field(
-        default_factory=PerformanceMonitoringSettings)
+        default_factory=PerformanceMonitoringSettings
+    )
     chat: ChatSettings = Field(default_factory=ChatSettings)
     external_service: ExternalServiceSettings = Field(
-        default_factory=ExternalServiceSettings)
+        default_factory=ExternalServiceSettings
+    )
     monitoring: MonitoringSettings = Field(default_factory=MonitoringSettings)
+    jaeger_otel: JaegerOtelSettings = Field(default_factory=JaegerOtelSettings)
 
 
 @lru_cache()

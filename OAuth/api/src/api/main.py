@@ -4,6 +4,9 @@ from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 from contextlib import asynccontextmanager
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
+from opentelemetry import trace
+
 from src.api.config import get_settings
 from src.api.common.logging import get_logger, get_tracer
 from src.api.common.middleware.middleware_factory import (
@@ -11,14 +14,12 @@ from src.api.common.middleware.middleware_factory import (
 )
 from src.api.common.middleware.performance_logging import PerformanceLoggingMiddleware
 from src.api.common.middleware.security_headers import SecurityHeadersMiddleware
-from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
-from opentelemetry import trace
-
 from src.api.routers import health
 
+# ----------------- Settings & Logging ----------------- #
 settings = get_settings()
-logger = get_logger(__name__)
-tracer = get_tracer()
+logger = get_logger("uvicorn+" + __name__)
+tracer = get_tracer("uvicorn+" + __name__)
 
 
 # ----------------- Lifespan ----------------- #
@@ -39,8 +40,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# Instrument FastAPI for auto-tracing
+# ----------------- Instrumentation ----------------- #
 FastAPIInstrumentor.instrument_app(app)
+
+# Use the configured tracer provider (from setup_otel)
 app.add_middleware(OpenTelemetryMiddleware, tracer_provider=trace.get_tracer_provider())
 
 # ----------------- Middleware ----------------- #

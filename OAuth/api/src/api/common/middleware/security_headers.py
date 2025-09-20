@@ -37,18 +37,18 @@ class SecurityHeadersMiddleware:
             )
 
         # Build a strict Content-Security-Policy
-        csp = {
-            "default-src": ["'self'"],
-            "script-src": ["'self'"],
-            "style-src": ["'self'"],
-            "img-src": ["'self'", "data:", "https:"],
-            "font-src": ["'self'", "data:"],
-            "connect-src": ["'self'"],
-            "frame-ancestors": ["'none'"],
-            "report-uri": ["/csp-report"],
-        }
-        csp_value = "; ".join(f"{k} {' '.join(v)}" for k, v in csp.items())
-        self.headers["Content-Security-Policy"] = csp_value
+        # csp = {
+        #     "default-src": ["'self'"],
+        #     "script-src": ["'self'"],
+        #     "style-src": ["'self'"],
+        #     "img-src": ["'self'", "data:", "https:"],
+        #     "font-src": ["'self'", "data:"],
+        #     "connect-src": ["'self'"],
+        #     "frame-ancestors": ["'none'"],
+        #     # "report-uri": ["/csp-report"],
+        # }
+        # csp_value = "; ".join(f"{k} {' '.join(v)}" for k, v in csp.items())
+        # self.headers["Content-Security-Policy"] = csp_value
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """
