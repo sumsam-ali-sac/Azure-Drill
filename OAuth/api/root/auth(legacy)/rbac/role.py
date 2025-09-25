@@ -5,9 +5,9 @@ Role class for RBAC system.
 from dataclasses import dataclass
 from typing import List, Optional, Union
 
-from auth.rbac.permission import Permission
-from auth.rbac.resource_type import ResourceType
-from auth.rbac.action import Action
+from root.authrbac.permission import Permission
+from root.authrbac.resource_type import ResourceType
+from root.authrbac.action import Action
 
 
 @dataclass

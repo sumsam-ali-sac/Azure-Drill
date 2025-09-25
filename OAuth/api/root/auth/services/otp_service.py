@@ -2,20 +2,18 @@
 OTP (One-Time Password) service for TOTP and HOTP authentication.
 """
 
-from typing import Dict, Any, Optional, Tuple
-from datetime import datetime, timedelta
-from auth.base.auth_base import BaseAuthService
-from auth.models.user import User
-from auth.managers.user_manager import UserManager
-from auth.managers.token_manager import TokenManager
-from auth.utils.security import SecurityUtils
-from auth.exceptions.auth_exceptions import (
+from typing import Dict, Any
+from root.auth.services.base_auth_service import BaseAuthService
+from root.auth.models.user import User
+from root.auth.managers.user_manager import UserManager
+from root.auth.managers.token_manager import TokenManager
+from root.auth.utils.security import SecurityUtils
+from root.auth.exceptions.auth_exceptions import (
     ValidationError,
     InvalidCredentialsError,
     OTPError,
 )
-from auth.config import config
-import pyotp
+from root.auth.config import config
 import qrcode
 import io
 import base64

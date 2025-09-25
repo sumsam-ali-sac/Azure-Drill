@@ -4,9 +4,12 @@ User manager for orchestrating user operations.
 
 from typing import Optional, List
 from root.domain.base_mongo_manager import BaseMongoManager
-from auth.models.user import User
-from auth.repositories.user_repository import UserRepository
-from auth.exceptions.auth_exceptions import UserNotFoundError, UserAlreadyExistsError
+from root.auth.models.user import User
+from root.auth.repositories.user_repository import UserRepository
+from root.auth.exceptions.auth_exceptions import (
+    UserNotFoundError,
+    UserAlreadyExistsError,
+)
 
 
 class UserManager(BaseMongoManager[str, User]):

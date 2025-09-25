@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, List
 from root.data.nosql.mongo.base_mongo_repository import BaseMongoRepository
-from auth.models.token import Token, TokenType
+from root.auth.models.token import Token, TokenType
 
 
 class TokenRepository(BaseMongoRepository[Token, str]):

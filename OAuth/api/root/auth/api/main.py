@@ -6,9 +6,9 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
 from contextlib import asynccontextmanager
-from auth.api.routes import auth, social, otp
-from auth.api.dependencies import get_current_user
-from auth.config import config
+from root.auth.api.routes import auth, social, otp
+from root.auth.api.dependencies import get_current_user
+from root.auth.config import config
 import logging
 
 # Configure logging
@@ -72,11 +72,3 @@ async def health_check():
 async def get_current_user_info(current_user=Depends(get_current_user)):
     """Get current authenticated user information."""
     return {"user": current_user, "authenticated": True}
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(
-        "auth.api.main:app", host="0.0.0.0", port=8000, reload=True, log_level="info"
-    )

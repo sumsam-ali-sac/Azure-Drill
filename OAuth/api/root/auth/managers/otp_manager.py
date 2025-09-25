@@ -4,8 +4,8 @@ OTP manager for business logic operations.
 
 from typing import Optional, List
 from root.domain.base_mongo_manager import BaseMongoManager
-from auth.models.otp_code import OTPCode
-from auth.repositories.otp_repository import OTPRepository
+from root.authmodels.otp_code import OTPCode
+from root.authrepositories.otp_repository import OTPRepository
 
 
 class OTPManager(BaseMongoManager[str, OTPCode]):

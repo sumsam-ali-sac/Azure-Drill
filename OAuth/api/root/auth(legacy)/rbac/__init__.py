@@ -1,15 +1,9 @@
 """RBAC (Role-Based Access Control) module."""
 
-from auth.rbac.resource_type import ResourceType
-from auth.rbac.action import Action
-from auth.rbac.permission import Permission
-from auth.rbac.role import Role
-from auth.rbac.rbac_manager import RBACManager
+from root.authrbac.resource_type import ResourceType
+from root.authrbac.action import Action
+from root.authrbac.permission import Permission
+from root.authrbac.role import Role
+from root.authrbac.rbac_manager import RBACManager
 
-__all__ = [
-    'ResourceType',
-    'Action', 
-    'Permission',
-    'Role',
-    'RBACManager'
-]
+__all__ = ["ResourceType", "Action", "Permission", "Role", "RBACManager"]

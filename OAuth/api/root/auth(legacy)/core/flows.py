@@ -9,8 +9,8 @@ import logging
 import time
 from datetime import datetime
 
-from auth.common.schemas import AuthFlowState, FlowStep
-from auth.common.exceptions import InvalidFlowStateError
+from root.authcommon.schemas import AuthFlowState, FlowStep
+from root.authcommon.exceptions import InvalidFlowStateError
 
 logger = logging.getLogger(__name__)
 

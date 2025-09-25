@@ -5,7 +5,7 @@ OTP Code model for temporary one-time password codes.
 from datetime import datetime, timedelta
 from typing import Optional, Literal
 from pydantic import Field
-from root.data.nosql.mongo import BaseMongoModel
+from root.data.nosql.mongo.base_mongo_model import BaseMongoModel
 
 OTPCodeType = Literal["setup", "login", "recovery", "backup"]
 
@@ -43,7 +43,7 @@ class OTPCode(BaseMongoModel[str]):
         """Pydantic configuration."""
 
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "user_id": "user-123-456",
                 "code_hash": "$2b$12$hashed_otp_code_here",

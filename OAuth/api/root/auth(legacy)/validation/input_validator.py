@@ -5,13 +5,13 @@ Provides comprehensive validation for emails, passwords, and other inputs.
 
 import re
 from typing import Dict, Any, List, Optional
-from auth.common.constants import (
+from root.authcommon.constants import (
     REGEX_EMAIL,
     REGEX_PASSWORD_STRENGTH,
     PASSWORD_MIN_LENGTH,
     SUPPORTED_OAUTH_PROVIDERS,
 )
-from auth.common.exceptions import (
+from root.authcommon.exceptions import (
     InvalidEmailError,
     WeakPasswordError,
     AuthBaseException,
@@ -370,7 +370,7 @@ class InputValidator:
                 else:
                     # Default to frontend URL host
                     from urllib.parse import urlparse as parse_config
-                    from auth.common.config import config
+                    from root.authcommon.config import config
 
                     frontend_host = parse_config(config.FRONTEND_URL).netloc
                     return parsed.netloc == frontend_host

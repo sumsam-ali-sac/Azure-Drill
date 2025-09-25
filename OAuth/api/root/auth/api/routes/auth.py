@@ -3,15 +3,19 @@ Basic authentication API routes.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from auth.services.auth_service import AuthService
-from auth.api.dependencies import get_auth_service, get_current_user
-from auth.models.user import User
-from auth.exceptions.auth_exceptions import (
+from root.auth.services.auth_service import AuthService
+from root.auth.api.dependencies import get_auth_service, get_current_user
+from root.auth.models.user import User
+from root.auth.exceptions.auth_exceptions import (
     ValidationError,
     InvalidCredentialsError,
     UserAlreadyExistsError,
+    UserNotFoundError,
+    InvalidTokenError,
+    TokenExpiredError,
+    AuthServiceError,
 )
-from auth.api.models.auth_models import (
+from root.auth.api.models.auth_models import (
     LoginRequest,
     RegisterRequest,
     ChangePasswordRequest,
@@ -21,12 +25,12 @@ from auth.api.models.auth_models import (
     AuthResponse,
     UserResponse,
 )
-from auth.api.models.common_models import SuccessResponse
+from root.auth.api.models.common_models import SuccessResponse
 
 router = APIRouter()
 
 
-@router.post("/login")
+@router.post("/login", response_model=AuthResponse)
 async def login(
     request: LoginRequest,
     http_request: Request,
@@ -40,18 +44,27 @@ async def login(
     try:
         credentials = {"email": request.email, "password": request.password}
 
-        result = await auth.authenticate_async(credentials, request.set_cookies)
+        result = await root.authauthenticate_async(credentials, request.set_cookies)
 
-        # If cookies are requested, return the Response object
         if request.set_cookies:
             return result
 
-        return result
+        # Wrap the result in AuthResponse when cookies are not set
+        return AuthResponse(**result)
 
     except InvalidCredentialsError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except UserNotFoundError as e:
+        # Combine with InvalidCredentialsError for security to avoid user enumeration
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password"
+        )
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -76,13 +89,17 @@ async def register(
             "last_name": request.last_name,
         }
 
-        user = await auth.register_async(user_data)
+        user = await root.authregister_async(user_data)
         return UserResponse(user=user.dict())
 
     except UserAlreadyExistsError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -102,7 +119,7 @@ async def change_password(
     Requires current password for verification.
     """
     try:
-        success = await auth.change_password_async(
+        success = await root.authchange_password_async(
             current_user.id, request.old_password, request.new_password
         )
 
@@ -120,6 +137,12 @@ async def change_password(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -137,7 +160,7 @@ async def reset_password(
     Sends a password reset token (in production, this would be sent via email).
     """
     try:
-        reset_token = await auth.reset_password_async(request.email)
+        reset_token = await root.authreset_password_async(request.email)
 
         # In production, you would send this token via email instead of returning it
         return SuccessResponse(
@@ -146,8 +169,16 @@ async def reset_password(
 
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except UserNotFoundError:
+        # Avoid revealing user existence for security
+        return SuccessResponse(
+            success=True, message="If the email exists, a reset link has been sent"
+        )
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
-        # Don't reveal if user exists or not for security
         return SuccessResponse(
             success=True, message="If the email exists, a reset link has been sent"
         )
@@ -164,7 +195,7 @@ async def confirm_password_reset(
     Completes the password reset process.
     """
     try:
-        success = await auth.confirm_password_reset_async(
+        success = await root.authconfirm_password_reset_async(
             request.reset_token, request.new_password
         )
 
@@ -176,10 +207,18 @@ async def confirm_password_reset(
                 detail="Failed to reset password",
             )
 
-    except InvalidCredentialsError as e:
+    except InvalidTokenError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except TokenExpiredError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -209,18 +248,23 @@ async def logout(
             token = http_request.cookies.get("access_token")
 
         if not token:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="No token to logout"
-            )
+            raise InvalidTokenError("No token provided")
 
-        result = await auth.logout_async(token, request.clear_cookies)
+        result = await root.authlogout_async(token, request.clear_cookies)
 
-        # If cookies are cleared, return the Response object
         if request.clear_cookies:
             return result
 
         return SuccessResponse(success=True, message="Logged out successfully")
 
+    except InvalidTokenError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except TokenExpiredError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Logout failed"
@@ -238,11 +282,17 @@ async def logout_all_devices(
     Revokes all tokens for the authenticated user.
     """
     try:
-        revoked_count = await auth.logout_all_devices_async(current_user.id)
+        revoked_count = await root.authlogout_all_devices_async(current_user.id)
         return SuccessResponse(
             success=True, message=f"Logged out from {revoked_count} devices"
         )
 
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -250,8 +300,7 @@ async def logout_all_devices(
         )
 
 
-# Health check endpoint for auth service
-@router.get("/health")
+@router.get("/auth-health")
 async def auth_health_check():
     """Health check for authentication service."""
     return {

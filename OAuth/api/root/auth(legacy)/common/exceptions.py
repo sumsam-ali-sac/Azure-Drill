@@ -5,7 +5,7 @@ Provides specific error types with appropriate HTTP status codes.
 
 from typing import Optional, Dict, Any
 from fastapi import HTTPException
-from auth.common.constants import (
+from root.authcommon.constants import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,

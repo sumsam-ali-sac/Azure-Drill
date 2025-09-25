@@ -4,17 +4,17 @@ RBAC Manager for role and permission management.
 
 from typing import Dict, List, Set, Optional, Union
 
-from auth.rbac.resource_type import ResourceType
-from auth.rbac.action import Action
-from auth.rbac.permission import Permission
-from auth.rbac.role import Role
-from auth.common.constants import (
+from root.authrbac.resource_type import ResourceType
+from root.authrbac.action import Action
+from root.authrbac.permission import Permission
+from root.authrbac.role import Role
+from root.authcommon.constants import (
     ROLE_USER,
     ROLE_ADMIN,
     ROLE_MODERATOR,
     ROLE_PERMISSIONS,
 )
-from auth.common.exceptions import InsufficientPermissionsError
+from root.authcommon.exceptions import InsufficientPermissionsError
 
 
 class RBACManager:

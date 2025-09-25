@@ -10,20 +10,20 @@ from pymongo import MongoClient
 from pymongo.database import Database
 
 # Import auth service components
-from auth.config import config
-from auth.repositories.user_repository import UserRepository
-from auth.repositories.token_repository import TokenRepository
-from auth.repositories.otp_repository import OTPRepository
-from auth.managers.user_manager import UserManager
-from auth.managers.token_manager import TokenManager
-from auth.managers.otp_manager import OTPManager
-from auth.services.auth_service import AuthService
-from auth.services.social_auth_service import SocialAuthService
-from auth.services.otp_service import OTPService
-from auth.providers.google import GoogleOAuthProvider
-from auth.providers.azure import AzureOAuthProvider
-from auth.utils.security import SecurityUtils
-from auth.exceptions.auth_exceptions import AuthServiceError
+from root.authconfig import config
+from root.authrepositories.user_repository import UserRepository
+from root.authrepositories.token_repository import TokenRepository
+from root.authrepositories.otp_repository import OTPRepository
+from root.authmanagers.user_manager import UserManager
+from root.authmanagers.token_manager import TokenManager
+from root.authmanagers.otp_manager import OTPManager
+from root.authservices.auth_service import AuthService
+from root.authservices.social_auth_service import SocialAuthService
+from root.authservices.otp_service import OTPService
+from root.authproviders.google import GoogleOAuthProvider
+from root.authproviders.azure import AzureOAuthProvider
+from root.authutils.security import SecurityUtils
+from root.authexceptions.auth_exceptions import AuthServiceError
 
 
 class AuthServiceCLI:
@@ -125,7 +125,7 @@ class AuthServiceCLI:
                 "last_name": last_name,
             }
 
-            user = self.auth.register(user_data)
+            user = self.root.authregister(user_data)
             print(f"✅ User registered successfully!")
             print(f"   ID: {user.id}")
             print(f"   Email: {user.email}")
@@ -145,7 +145,7 @@ class AuthServiceCLI:
         try:
             credentials = {"email": email, "password": password}
 
-            result = self.auth.authenticate(credentials)
+            result = self.root.authauthenticate(credentials)
             user = result["user"]
 
             print(f"✅ Login successful!")
@@ -168,7 +168,7 @@ class AuthServiceCLI:
         try:
             user = self.user_manager.get_user_by_email(email)
 
-            success = self.auth.change_password(user.id, old_password, new_password)
+            success = self.root.authchange_password(user.id, old_password, new_password)
 
             if success:
                 print("✅ Password changed successfully!")
@@ -186,7 +186,7 @@ class AuthServiceCLI:
         email = input("Email: ").strip()
 
         try:
-            reset_token = self.auth.reset_password(email)
+            reset_token = self.root.authreset_password(email)
             print(f"✅ Password reset initiated!")
             print(f"   Reset Token: {reset_token[:50]}...")
             print("   (In production, this would be sent via email)")
@@ -194,7 +194,9 @@ class AuthServiceCLI:
             complete = input("\nComplete password reset? (y/n): ").strip().lower()
             if complete == "y":
                 new_password = input("New Password: ").strip()
-                success = self.auth.confirm_password_reset(reset_token, new_password)
+                success = self.root.authconfirm_password_reset(
+                    reset_token, new_password
+                )
 
                 if success:
                     print("✅ Password reset completed!")

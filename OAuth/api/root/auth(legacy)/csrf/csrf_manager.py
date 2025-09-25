@@ -8,7 +8,7 @@ import hmac
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any
 
-from auth.common.constants import CSRF_TOKEN_LENGTH
+from root.authcommon.constants import CSRF_TOKEN_LENGTH
 
 
 class CSRFManager:

@@ -12,9 +12,9 @@ from passlib.hash import argon2
 import logging
 from datetime import datetime
 
-from auth.common.config import config
-from auth.common.constants import MIN_PASSWORD_LENGTH, PASSWORD_PATTERNS
-from auth.common.exceptions import WeakPasswordError
+from root.authcommon.config import config
+from root.authcommon.constants import MIN_PASSWORD_LENGTH, PASSWORD_PATTERNS
+from root.authcommon.exceptions import WeakPasswordError
 
 logger = logging.getLogger(__name__)
 
@@ -310,7 +310,7 @@ class PasswordManager:
         Returns:
             Reset token
         """
-        from auth.security import TokenManager
+        from root.authsecurity import TokenManager
 
         token_manager = TokenManager()
         return token_manager.create_token(
@@ -333,7 +333,7 @@ class PasswordManager:
             Email if token is valid, None otherwise
         """
         try:
-            from auth.security import TokenManager
+            from root.authsecurity import TokenManager
 
             token_manager = TokenManager()
             payload = token_manager.verify_token(token)

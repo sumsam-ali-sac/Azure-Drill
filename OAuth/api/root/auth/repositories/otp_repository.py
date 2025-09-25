@@ -4,8 +4,8 @@ OTP repository for MongoDB operations.
 
 import uuid
 from typing import Optional, List
-from auth.base.mongo_base import BaseMongoRepository
-from auth.models.otp_code import OTPCode
+from root.authbase.mongo_base import BaseMongoRepository
+from root.authmodels.otp_code import OTPCode
 
 
 class OTPRepository(BaseMongoRepository[OTPCode, str]):

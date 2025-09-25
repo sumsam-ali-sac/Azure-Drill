@@ -42,7 +42,7 @@ class BackupCode(BaseMongoModel[str]):
         """Pydantic configuration."""
 
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "user_id": "user-123-456",
                 "code_hash": "$2b$12$hashed_backup_code_here",

@@ -114,23 +114,6 @@
 	--color-sidebar-ring: var(--sidebar-ring);
 }
 
-@layer base {
-	* {
-		@apply border-border outline-ring/50;
-	}
-	body {
-		@apply bg-background text-foreground;
-		/* Added subtle texture and improved typography */
-		background-image: radial-gradient(
-			circle at 1px 1px,
-			rgba(255, 255, 255, 0.02) 1px,
-			transparent 0
-		);
-		background-size: 20px 20px;
-		font-feature-settings: "rlig" 1, "calt" 1;
-	}
-}
-
 /* Enhanced animations with modern easing */
 @keyframes float {
 	0%,

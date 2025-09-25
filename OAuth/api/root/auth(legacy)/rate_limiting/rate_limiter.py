@@ -7,7 +7,7 @@ import time
 from typing import Dict, List, Callable
 from functools import wraps
 
-from auth.common.exceptions import RateLimitExceededError
+from root.authcommon.exceptions import RateLimitExceededError
 
 
 class RateLimiter:

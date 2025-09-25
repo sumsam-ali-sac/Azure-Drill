@@ -6,13 +6,13 @@ import requests
 from typing import Dict, Any, Optional
 from urllib.parse import urlencode
 
-from auth.oauth.oauth_provider import OAuthProvider
-from auth.common.constants import (
+from root.authoroot.authoauth_provider import OAuthProvider
+from root.authcommon.constants import (
     OAUTH_PROVIDER_AZURE,
     AZURE_OAUTH_SCOPES,
     AZURE_OAUTH_URLS,
 )
-from auth.common.exceptions import OAuthError
+from root.authcommon.exceptions import OAuthError
 
 
 class AzureOAuthProvider(OAuthProvider):

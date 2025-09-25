@@ -4,7 +4,7 @@ Input validators for authentication data.
 
 import re
 from typing import Dict, List, Any
-from auth.config import config
+from root.auth.config import config
 
 
 class EmailValidator:

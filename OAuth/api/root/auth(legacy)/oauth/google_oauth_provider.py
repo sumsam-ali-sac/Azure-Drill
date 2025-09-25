@@ -6,15 +6,15 @@ import requests
 from typing import Dict, Any, Optional
 from urllib.parse import urlencode
 
-from auth.oauth.oauth_provider import OAuthProvider
-from auth.common.constants import (
+from root.authoroot.authoauth_provider import OAuthProvider
+from root.authcommon.constants import (
     OAUTH_PROVIDER_GOOGLE,
     GOOGLE_OAUTH_SCOPES,
     GOOGLE_OAUTH_URLS,
 )
-from auth.common.exceptions import OAuthError
-from auth.common.config import config
-from auth.security.token_utils import token_manager
+from root.authcommon.exceptions import OAuthError
+from root.authcommon.config import config
+from root.authsecurity.token_utils import token_manager
 
 
 class GoogleOAuthProvider(OAuthProvider):

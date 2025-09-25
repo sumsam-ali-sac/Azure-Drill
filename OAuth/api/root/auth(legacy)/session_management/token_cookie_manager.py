@@ -6,9 +6,9 @@ Combines session and cookie management for authentication.
 from typing import Dict, Any, Optional
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
-from auth.session_management import SessionManager, CookieManager
-from auth.common.config import config
-from auth.security import security_utils
+from root.authsession_management import SessionManager, CookieManager
+from root.authcommon.config import config
+from root.authsecurity import security_utils
 
 
 class TokenCookieManager:

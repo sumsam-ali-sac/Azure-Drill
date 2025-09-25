@@ -8,9 +8,12 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import Optional
 
-from auth.common.config import config
-from auth.common.constants import EMAIL_TEMPLATE_PASSWORD_RESET, EMAIL_TEMPLATE_WELCOME
-from auth.common.exceptions import EmailSendError
+from root.authcommon.config import config
+from root.authcommon.constants import (
+    EMAIL_TEMPLATE_PASSWORD_RESET,
+    EMAIL_TEMPLATE_WELCOME,
+)
+from root.authcommon.exceptions import EmailSendError
 
 
 class EmailManager:

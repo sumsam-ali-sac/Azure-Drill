@@ -8,8 +8,8 @@ import secrets
 from typing import Optional, Dict, Any
 from passlib.context import CryptContext
 
-from auth.common.config import config
-from auth.common.constants import (
+from root.authcommon.config import config
+from root.authcommon.constants import (
     PASSWORD_MIN_LENGTH,
     PASSWORD_REQUIRE_UPPERCASE,
     PASSWORD_REQUIRE_LOWERCASE,
@@ -18,8 +18,8 @@ from auth.common.constants import (
     PASSWORD_SPECIAL_CHARS,
     REGEX_PASSWORD_STRENGTH,
 )
-from auth.common.exceptions import WeakPasswordError
-from auth.security.token_utils import token_manager
+from root.authcommon.exceptions import WeakPasswordError
+from root.authsecurity.token_utils import token_manager
 
 
 class PasswordManager:

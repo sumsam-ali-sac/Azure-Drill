@@ -1,5 +1,5 @@
 """CSRF protection module."""
 
-from auth.csrf.csrf_manager import CSRFManager
+from root.authcsrf.csrf_manager import CSRFManager
 
-__all__ = ['CSRFManager']
+__all__ = ["CSRFManager"]

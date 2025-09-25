@@ -12,10 +12,10 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
 import logging
 
-from auth.common.config import config
-from auth.common.constants import ALLOWED_JWT_ALGORITHMS, TOKEN_TYPE_BEARER
-from auth.common.exceptions import TokenExpiredError, InvalidTokenError
-from root.ai_query_engine.core.auth.security.secret_manager import SecretsManager
+from root.authcommon.config import config
+from root.authcommon.constants import ALLOWED_JWT_ALGORITHMS, TOKEN_TYPE_BEARER
+from root.authcommon.exceptions import TokenExpiredError, InvalidTokenError
+from root.ai_query_engine.core.root.authsecurity.secret_manager import SecretsManager
 
 logger = logging.getLogger(__name__)
 

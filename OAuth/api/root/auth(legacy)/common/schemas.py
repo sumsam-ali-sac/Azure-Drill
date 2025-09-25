@@ -6,7 +6,7 @@ Defines data models for all authentication operations.
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from auth.common.constants import (
+from root.authcommon.constants import (
     PASSWORD_MIN_LENGTH,
     REGEX_PASSWORD_STRENGTH,
     TOKEN_TYPE_BEARER,

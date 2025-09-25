@@ -5,7 +5,7 @@ User repository for MongoDB operations.
 import uuid
 from typing import Optional, List
 from root.data.nosql.mongo.base_mongo_repository import BaseMongoRepository
-from auth.models.user import User
+from root.auth.models.user import User
 
 
 class UserRepository(BaseMongoRepository[User, str]):

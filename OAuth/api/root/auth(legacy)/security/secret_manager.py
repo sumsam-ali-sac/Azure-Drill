@@ -9,8 +9,8 @@ from typing import Optional, Union
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, ec
 from cryptography.hazmat.backends import default_backend
-from auth.common.exceptions import AuthConfigurationError
-from auth.common.config import config
+from root.authcommon.exceptions import AuthConfigurationError
+from root.authcommon.config import config
 
 
 class SecretManager:

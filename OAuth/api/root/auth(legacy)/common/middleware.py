@@ -10,19 +10,19 @@ from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse
 
-from auth.rbac import Action, rbac_manager, ResourceType
+from root.authrbac import Action, rbac_manager, ResourceType
 
-from auth.common.config import config
-from auth.core import auth_manager
-from auth.security import token_manager
-from auth.common.exceptions import (
+from root.authcommon.config import config
+from root.authcore import auth_manager
+from root.authsecurity import token_manager
+from root.authcommon.exceptions import (
     TokenExpiredError,
     TokenInvalidError,
     InsufficientPermissionsError,
     RateLimitExceededError,
 )
-from auth.session_management import token_cookie_manager
-from auth.common.constants import TOKEN_TYPE_ACCESS
+from root.authsession_management import token_cookie_manager
+from root.authcommon.constants import TOKEN_TYPE_ACCESS
 
 
 # Security scheme for FastAPI

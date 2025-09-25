@@ -5,8 +5,8 @@ Authentication middleware for API endpoints.
 from typing import Optional
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from auth.services.auth_service import AuthService
-from auth.exceptions.auth_exceptions import AuthServiceError
+from root.authservices.auth_service import AuthService
+from root.authexceptions.auth_exceptions import AuthServiceError
 
 security = HTTPBearer()
 
@@ -30,10 +30,10 @@ async def get_current_user(
     """
     try:
         token = credentials.credentials
-        payload = auth.token_manager.validate_token(token)
+        payload = root.authtoken_manager.validate_token(token)
 
         # Get user information
-        user = auth.user_manager.get_user_by_id(payload["user_id"])
+        user = root.authuser_manager.get_user_by_id(payload["user_id"])
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"

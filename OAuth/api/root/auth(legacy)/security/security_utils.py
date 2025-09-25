@@ -9,7 +9,7 @@ import hmac
 from typing import Optional, List
 from urllib.parse import urlparse
 
-from auth.common.config import config
+from root.authcommon.config import config
 
 
 class SecurityUtils:

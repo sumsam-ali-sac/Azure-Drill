@@ -13,10 +13,10 @@ from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
 import logging
 
-from auth.common.config import config
-from auth.common.constants import OTP_EXPIRY_SECONDS, OTP_ISSUER_NAME
-from auth.common.exceptions import OTPInvalidError, RateLimitExceededError
-from auth.rate_limiting import RateLimiter
+from root.authcommon.config import config
+from root.authcommon.constants import OTP_EXPIRY_SECONDS, OTP_ISSUER_NAME
+from root.authcommon.exceptions import OTPInvalidError, RateLimitExceededError
+from root.authrate_limiting import RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -280,7 +280,7 @@ class OTPManager:
             code: OTP code
             user_name: User's name for personalization
         """
-        from auth.email import EmailManager
+        from root.authemail import EmailManager
 
         email_manager = EmailManager()
         await email_manager.send_email(email, code, user_name)

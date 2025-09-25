@@ -9,10 +9,10 @@ from typing import Dict, Any, Optional, List
 from urllib.parse import urlencode, parse_qs
 import logging
 
-from auth.common.config import config
-from auth.common.exceptions import OAuthError, InvalidStateError
-from auth.security.token_utils import JWKSManager
-from auth.oauth import GoogleProvider, AzureProvider
+from root.authcommon.config import config
+from root.authcommon.exceptions import OAuthError, InvalidStateError
+from root.authsecurity.token_utils import JWKSManager
+from root.authoauth import GoogleProvider, AzureProvider
 
 logger = logging.getLogger(__name__)
 

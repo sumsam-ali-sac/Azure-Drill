@@ -5,7 +5,7 @@ User model inheriting from BaseMongoModel.
 from datetime import datetime
 from typing import Optional, Dict
 from pydantic import Field, EmailStr
-from root.data.nosql.mongo import BaseMongoModel
+from root.data.nosql.mongo.base_mongo_model import BaseMongoModel
 
 
 class User(BaseMongoModel[str]):
@@ -44,7 +44,7 @@ class User(BaseMongoModel[str]):
         """Pydantic configuration."""
 
         json_encoders = {datetime: lambda v: v.isoformat()}
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "email": "user@example.com",
                 "is_active": True,

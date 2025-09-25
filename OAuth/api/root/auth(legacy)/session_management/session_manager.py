@@ -5,8 +5,8 @@ Handles user session creation and management.
 
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
-from auth.common.config import config
-from auth.security import security_utils
+from root.authcommon.config import config
+from root.authsecurity import security_utils
 
 
 class SessionManager:

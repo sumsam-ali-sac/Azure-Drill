@@ -8,8 +8,8 @@ import httpx
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 from passlib.context import CryptContext
-from auth.config import config
-from auth.exceptions.auth_exceptions import InvalidTokenError, ValidationError
+from root.auth.config import config
+from root.auth.exceptions.auth_exceptions import InvalidTokenError, ValidationError
 import logging
 
 # Configure logging

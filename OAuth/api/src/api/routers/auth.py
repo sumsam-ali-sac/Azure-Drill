@@ -2,25 +2,25 @@ from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, Request, Response, HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 
-from root.auth.common.exceptions import (
+from root.root.authcommon.exceptions import (
     EmailAlreadyExistsError,
     InvalidCredentialsError,
     TokenExpiredError,
     WeakPasswordError,
 )
-from root.auth.common.middleware import (
+from root.root.authcommon.middleware import (
     AuthUser,
     create_auth_response,
     get_current_user,
     get_current_user_optional,
 )
-from root.auth.common.schemas import (
+from root.root.authcommon.schemas import (
     APIResponse,
     TokenRefresh,
     UserLogin,
     UserRegistration,
 )
-from root.auth.core import auth_manager
+from root.root.authcore import auth_manager
 
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])

@@ -1,5 +1,5 @@
 """Validation InputValidator module."""
 
-from auth.validation.input_validator import InputValidator
+from root.authvalidation.input_validator import InputValidator
 
 __all__ = ["InputValidator"]

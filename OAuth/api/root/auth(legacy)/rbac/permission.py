@@ -5,8 +5,8 @@ Permission class for RBAC system.
 from dataclasses import dataclass
 from typing import Dict, Any, Optional, Union
 
-from auth.rbac.resource_type import ResourceType
-from auth.rbac.action import Action
+from root.authrbac.resource_type import ResourceType
+from root.authrbac.action import Action
 
 
 @dataclass

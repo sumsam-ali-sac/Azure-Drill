@@ -5,18 +5,18 @@ FastAPI dependencies for authentication service.
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
-from auth.managers.user_manager import UserManager
-from auth.managers.token_manager import TokenManager
-from auth.repositories.user_repository import UserRepository
-from auth.repositories.token_repository import TokenRepository
-from auth.services.auth_service import AuthService
-from auth.services.social_auth_service import SocialAuthService
-from auth.services.otp_service import OTPService
-from auth.providers.google import GoogleOAuthProvider
-from auth.providers.azure import AzureOAuthProvider
-from auth.utils.security import SecurityUtils
-from auth.models.user import User
-from auth.exceptions.auth_exceptions import InvalidTokenError
+from root.auth.managers.user_manager import UserManager
+from root.auth.managers.token_manager import TokenManager
+from root.auth.repositories.user_repository import UserRepository
+from root.auth.repositories.token_repository import TokenRepository
+from root.auth.services.auth_service import AuthService
+from root.auth.services.social_auth_service import SocialAuthService
+from root.auth.services.otp_service import OTPService
+from root.auth.providers.google import GoogleOAuthProvider
+from root.auth.providers.azure import AzureOAuthProvider
+from root.auth.utils.security import SecurityUtils
+from root.auth.models.user import User
+from root.auth.exceptions.auth_exceptions import InvalidTokenError
 
 # Security scheme
 security = HTTPBearer()

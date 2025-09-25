@@ -3,89 +3,34 @@ Social authentication API routes.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from pydantic import BaseModel, Field
 from typing import Optional
-from auth.services.social_auth_service import SocialAuthService
-from auth.api.dependencies import get_social_auth_service, get_current_user
-from auth.models.user import User
-from auth.exceptions.auth_exceptions import ProviderError, ValidationError
+from root.auth.api.models.social_models import (
+    AuthUrlRequest,
+    AuthUrlResponse,
+    LinkProviderRequest,
+    ProvidersResponse,
+    SocialAuthRequest,
+    SocialAuthResponse,
+    UnlinkProviderRequest,
+    UserResponse,
+)
+from root.auth.services.social_auth_service import SocialAuthService
+from root.auth.api.dependencies import get_social_auth_service, get_current_user
+from root.auth.models.user import User
+from root.auth.exceptions.auth_exceptions import (
+    ProviderError,
+    ValidationError,
+    InvalidTokenError,
+    TokenExpiredError,
+    UserNotFoundError,
+    UserAlreadyExistsError,
+    InvalidOTPError,
+    AuthServiceError,
+    ProviderAlreadyLinkedError,
+    ProviderNotLinkedError,
+)
 
 router = APIRouter()
-
-
-# Request/Response models
-class AuthUrlRequest(BaseModel):
-    """Request model for getting OAuth authorization URL."""
-
-    provider: str = Field(..., description="OAuth provider name (google, azure)")
-    state: Optional[str] = Field(
-        None, description="Optional state parameter for CSRF protection"
-    )
-
-
-class AuthUrlResponse(BaseModel):
-    """Response model for OAuth authorization URL."""
-
-    auth_url: str = Field(..., description="OAuth authorization URL")
-    provider: str = Field(..., description="OAuth provider name")
-
-
-class SocialAuthRequest(BaseModel):
-    """Request model for social authentication."""
-
-    provider: str = Field(..., description="OAuth provider name (google, azure)")
-    code: str = Field(..., description="Authorization code from OAuth provider")
-    state: Optional[str] = Field(
-        None, description="State parameter for CSRF protection"
-    )
-    set_cookies: bool = Field(
-        default=False, description="Whether to set authentication cookies"
-    )
-
-
-class LinkProviderRequest(BaseModel):
-    """Request model for linking social provider."""
-
-    provider: str = Field(..., description="OAuth provider name (google, azure)")
-    code: str = Field(..., description="Authorization code from OAuth provider")
-    state: Optional[str] = Field(
-        None, description="State parameter for CSRF protection"
-    )
-
-
-class UnlinkProviderRequest(BaseModel):
-    """Request model for unlinking social provider."""
-
-    provider: str = Field(..., description="OAuth provider name to unlink")
-
-
-class AuthResponse(BaseModel):
-    """Response model for social authentication."""
-
-    user: dict = Field(..., description="User information")
-    access_token: str = Field(..., description="JWT access token")
-    refresh_token: str = Field(..., description="JWT refresh token")
-    token_type: str = Field(..., description="Token type (bearer)")
-    provider: str = Field(..., description="OAuth provider used")
-
-
-class UserResponse(BaseModel):
-    """Response model for user information."""
-
-    user: dict = Field(..., description="User information")
-
-
-class ProvidersResponse(BaseModel):
-    """Response model for supported providers."""
-
-    providers: list[str] = Field(..., description="List of supported OAuth providers")
-
-
-class SuccessResponse(BaseModel):
-    """Generic success response."""
-
-    success: bool = Field(..., description="Whether operation was successful")
-    message: str = Field(..., description="Success message")
 
 
 @router.get("/providers", response_model=ProvidersResponse)
@@ -100,6 +45,12 @@ async def get_supported_providers(
     try:
         providers = social_service.get_supported_providers()
         return ProvidersResponse(providers=providers)
+    except ProviderError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -122,6 +73,12 @@ async def get_auth_url(
         return AuthUrlResponse(auth_url=auth_url, provider=request.provider)
     except ProviderError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -129,7 +86,7 @@ async def get_auth_url(
         )
 
 
-@router.post("/authenticate")
+@router.post("/authenticate", response_model=SocialAuthResponse)
 async def authenticate_social(
     request: SocialAuthRequest,
     http_request: Request,
@@ -149,7 +106,6 @@ async def authenticate_social(
 
         result = await social_service.authenticate(credentials, request.set_cookies)
 
-        # If cookies are requested, return the Response object
         if request.set_cookies:
             return result
 
@@ -159,6 +115,20 @@ async def authenticate_social(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except InvalidTokenError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except TokenExpiredError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except UserAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except InvalidOTPError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -185,6 +155,16 @@ async def link_provider(
 
     except ProviderError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except InvalidTokenError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except ProviderAlreadyLinkedError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -209,6 +189,14 @@ async def unlink_provider(
         )
         return UserResponse(user=user.dict())
 
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except ProviderNotLinkedError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -216,7 +204,6 @@ async def unlink_provider(
         )
 
 
-# Provider-specific callback endpoints (for development/testing)
 @router.get("/google/callback")
 async def google_callback(
     code: str,
@@ -234,6 +221,20 @@ async def google_callback(
         result = await social_service.authenticate(credentials)
         return result
 
+    except ProviderError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except InvalidTokenError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except TokenExpiredError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except UserAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -258,6 +259,20 @@ async def azure_callback(
         result = await social_service.authenticate(credentials)
         return result
 
+    except ProviderError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except InvalidTokenError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except TokenExpiredError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except UserNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except UserAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except AuthServiceError as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -265,7 +280,6 @@ async def azure_callback(
         )
 
 
-# Health check endpoint for social auth service
 @router.get("/health")
 async def social_health_check():
     """Health check for social authentication service."""

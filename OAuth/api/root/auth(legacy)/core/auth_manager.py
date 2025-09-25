@@ -8,8 +8,8 @@ from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 import logging
 
-from auth.common.config import config
-from auth.common.exceptions import (
+from root.authcommon.config import config
+from root.authcommon.exceptions import (
     InvalidCredentialsError,
     OTPInvalidError,
     TokenExpiredError,
@@ -18,7 +18,7 @@ from auth.common.exceptions import (
     UserNotFoundError,
     AccountLockedError,
 )
-from root.ai_query_engine.core.auth.common.schemas import (
+from root.ai_query_engine.core.root.authcommon.schemas import (
     UserIn,
     TokenResponse,
     ResetRequest,
@@ -26,14 +26,14 @@ from root.ai_query_engine.core.auth.common.schemas import (
     SocialLoginRequest,
     UserProfile,
 )
-from auth.security.password_utils import PasswordManager
-from auth.security.otp_utils import OTPManager
-from auth.security.token_utils import TokenManager
-from auth.oauth.oauth_manager import OAuthManager
-from auth.rate_limiting import RateLimiter
-from auth.email import EmailManager
-from auth.rbac.rbac_manager import RBACManager
-from auth.validation import InputValidator
+from root.authsecurity.password_utils import PasswordManager
+from root.authsecurity.otp_utils import OTPManager
+from root.authsecurity.token_utils import TokenManager
+from root.authoroot.authoauth_manager import OAuthManager
+from root.authrate_limiting import RateLimiter
+from root.authemail import EmailManager
+from root.authrbac.rbac_manager import RBACManager
+from root.authvalidation import InputValidator
 
 logger = logging.getLogger(__name__)
 

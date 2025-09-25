@@ -5,10 +5,10 @@ OTP authentication API routes.
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
-from auth.services.otp_service import OTPService
-from auth.api.dependencies import get_otp_service, get_current_user
-from auth.models.user import User
-from auth.exceptions.auth_exceptions import (
+from root.auth.services.otp_service import OTPService
+from root.auth.api.dependencies import get_otp_service, get_current_user
+from root.auth.models.user import User
+from root.auth.exceptions.auth_exceptions import (
     ValidationError,
     OTPError,
     InvalidCredentialsError,

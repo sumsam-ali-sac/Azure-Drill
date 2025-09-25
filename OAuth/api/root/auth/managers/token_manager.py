@@ -5,11 +5,11 @@ Token manager for orchestrating token operations.
 from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from root.domain.base_mongo_manager import BaseMongoManager
-from auth.models.token import Token, TokenType
-from auth.repositories.token_repository import TokenRepository
-from auth.utils.security import SecurityUtils
-from auth.config import config
-from auth.exceptions.auth_exceptions import InvalidTokenError, TokenExpiredError
+from root.auth.models.token import Token, TokenType
+from root.auth.repositories.token_repository import TokenRepository
+from root.auth.utils.security import SecurityUtils
+from root.auth.config import config
+from root.auth.exceptions.auth_exceptions import InvalidTokenError, TokenExpiredError
 
 
 class TokenManager(BaseMongoManager[str, Token]):

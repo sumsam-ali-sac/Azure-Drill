@@ -5,7 +5,7 @@ Handles secure HTTP cookie operations.
 
 from typing import Optional
 from fastapi import Request, Response
-from auth.common import config
+from root.authcommon import config
 
 
 class CookieManager:

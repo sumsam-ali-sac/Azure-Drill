@@ -5,7 +5,7 @@ OTP Session model for tracking OTP authentication sessions.
 from datetime import datetime, timedelta
 from typing import Optional, Literal
 from pydantic import Field
-from root.data.nosql.mongo import BaseMongoModel
+from root.data.nosql.mongo.base_mongo_model import BaseMongoModel
 
 # Type definition for OTP session states
 OTPSessionState = Literal["pending", "verified", "expired", "failed", "cancelled"]
@@ -49,7 +49,7 @@ class OTPSession(BaseMongoModel[str]):
         """Pydantic configuration."""
 
         json_encoders = {datetime: lambda v: v.isoformat() if v else None}
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "user_id": "user-123-456",
                 "session_token": "otp_session_abc123def456",
